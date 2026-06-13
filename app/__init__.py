@@ -21,6 +21,11 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
+    # Register the SQLite data layer (request-scoped connection teardown).
+    from . import db
+
+    db.init_app(app)
+
     @app.route("/health")
     def health():
         """Lightweight liveness check used by tests and the live demo."""
