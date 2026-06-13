@@ -13,13 +13,10 @@
 
 ## Commands Evidence
 
-Generate and rebuild:
+Generate and rebuild (one command, resets the DB first):
 
 ```powershell
-python data/generate_data.py
-python -m app.ingest
-python -m app.baseline
-python -m app.anomalies
+python scripts/rebuild.py
 ```
 
 Run app:
@@ -34,29 +31,23 @@ Run tests:
 pytest -q
 ```
 
-Run evaluation interactively:
+Run evaluation (prints the report and writes `evidence/metrics.json` +
+`evidence/evaluation_output.txt`):
 
-```python
-from pathlib import Path
-from app.config import Config
-from app.evaluation import run_scenario, confusion_matrix, metrics, threshold_sensitivity
-
-scenario_files = [
-    Path("data/scenario_normal.csv"),
-    Path("data/scenario_after_hours.csv"),
-    Path("data/scenario_exfiltration.csv"),
-]
-
-combined = []
-for scenario_file in scenario_files:
-    rows = run_scenario(scenario_file, db_path=Config.DB_PATH)
-    combined.extend(rows)
-    print(scenario_file.name, confusion_matrix(rows), metrics(rows))
-
-print(confusion_matrix(combined))
-print(metrics(combined))
-print(threshold_sensitivity(combined))
+```powershell
+python -m app.evaluation
 ```
+
+## Generated Evidence Files
+
+These are produced by the commands above and committed under `evidence/`:
+
+| File | Produced by | Contents |
+|---|---|---|
+| `evidence/metrics.json` | `python -m app.evaluation` | Machine-readable per-scenario + combined metrics + threshold sweep |
+| `evidence/evaluation_output.txt` | `python -m app.evaluation` | The printed evaluation report |
+| `evidence/anomalies_export.csv` | `GET /api/anomalies.csv` | Exported anomaly snapshot (FR10) |
+| `evidence/pytest_output.txt` | `pytest -q` | Full passing test run (115 tests) |
 
 ## Dashboard And API Evidence
 
@@ -68,6 +59,7 @@ print(threshold_sensitivity(combined))
 | All anomalies | `GET /api/anomalies` |
 | Severity filter | `GET /api/anomalies?severity=High` |
 | User filter | `GET /api/anomalies?user=U017` |
+| CSV export (FR10) | `GET /api/anomalies.csv?severity=High` / dashboard **Download CSV** |
 
 ## Evaluation Evidence
 
@@ -104,7 +96,8 @@ where analyst workload and false positives matter more.
 | Score deviations | `app/scoring.py`, `tests/test_scoring.py` |
 | Label severity and explain anomaly reason | `app/anomalies.py`, dashboard row detail |
 | Expose dashboard/API | `app/routes.py`, `app/templates/dashboard.html`, `app/static/js/dashboard.js` |
-| Evaluate labelled scenarios | `app/evaluation.py`, `tests/test_evaluation.py`, `docs/evaluation-report.md` |
+| Evaluate labelled scenarios | `app/evaluation.py`, `tests/test_evaluation.py`, `tests/test_evaluation_cli.py`, `docs/evaluation-report.md` |
+| Export anomalies as CSV (FR10) | `GET /api/anomalies.csv` in `app/routes.py`, `tests/test_routes.py` |
 | Preserve synthetic-data-only scope | `data/generate_data.py`, `data/data-dictionary.md` |
 
 ## Limitations And Deferred Items
@@ -113,7 +106,9 @@ where analyst workload and false positives matter more.
 - No authentication or role-based access control is implemented.
 - No real-time streaming pipeline is implemented.
 - No deployment or cloud infrastructure is included.
-- No pagination, charts, CSV export, or report export is implemented.
-- FR10 must remain deferred unless an actual CSV export feature is added later.
+- No pagination or charts are implemented (CSV export *is* implemented — FR10).
+- `detection_timestamp` uses the wall-clock time of the scoring run, so the
+  `Anomalies` table is not byte-identical between runs even though the inputs,
+  counts, scores, and severities are fully deterministic.
 - Exfiltration detection can miss subtle cases where feature scores remain below
   threshold.

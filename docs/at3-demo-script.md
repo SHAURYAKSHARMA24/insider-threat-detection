@@ -20,18 +20,15 @@ resource-rarity logic, stores severity-labelled anomalies, exposes JSON APIs,
 and displays results in a Flask dashboard.
 
 The key exclusions are also intentional: no machine learning, no authentication,
-no deployment layer, no real-time monitoring, and no CSV export.
+no deployment layer, and no real-time monitoring.
 
 ## Demo Command Sequence
 
-From the project root:
+From the project root (one-command rebuild, then start the app):
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
-python data/generate_data.py
-python -m app.ingest
-python -m app.baseline
-python -m app.anomalies
+python scripts/rebuild.py
 python run.py
 ```
 
@@ -43,6 +40,7 @@ http://127.0.0.1:5000/health
 http://127.0.0.1:5000/api/summary
 http://127.0.0.1:5000/api/anomalies
 http://127.0.0.1:5000/api/anomalies?severity=High
+http://127.0.0.1:5000/api/anomalies.csv?severity=High
 ```
 
 Run tests:
@@ -61,32 +59,10 @@ $env:TEMP=(Resolve-Path .tmp).Path
 .\.venv\Scripts\python.exe -m pytest -q -o cache_dir=.tmp\.pytest_cache --basetemp=.tmp\pytest
 ```
 
-Run labelled evaluation from Python:
+Run labelled evaluation (prints the report and saves the evidence files):
 
 ```powershell
-.\.venv\Scripts\python.exe
-```
-
-```python
-from pathlib import Path
-from app.config import Config
-from app.evaluation import run_scenario, confusion_matrix, metrics, threshold_sensitivity
-
-files = [
-    Path("data/scenario_normal.csv"),
-    Path("data/scenario_after_hours.csv"),
-    Path("data/scenario_exfiltration.csv"),
-]
-
-rows = []
-for file in files:
-    result = run_scenario(file, db_path=Config.DB_PATH)
-    rows.extend(result)
-    print(file.name, confusion_matrix(result), metrics(result))
-
-print(confusion_matrix(rows))
-print(metrics(rows))
-print(threshold_sensitivity(rows))
+python -m app.evaluation
 ```
 
 ## Seven-Minute Software Demo
@@ -110,7 +86,11 @@ print(threshold_sensitivity(rows))
    Show that each anomaly includes user, date, login time, resource type, access
    count, deviation score, severity, and explanation.
 
-6. Discuss evaluation evidence.
+6. Click **Download CSV** on the dashboard (FR10).
+   Show that the export respects the active filters (e.g. apply Severity = High
+   first), then open the saved `anomalies.csv` to show the analyst-ready output.
+
+7. Discuss evaluation evidence.
    Use `docs/evaluation-report.md`: combined precision `0.9444`, recall
    `0.9107`, F1 `0.9273`, and false-positive rate `0.0195` at threshold `2.5`.
 
