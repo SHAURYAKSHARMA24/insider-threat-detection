@@ -5,7 +5,7 @@
 All three labelled Objective 4 scenario files are present in `data/`:
 
 | Scenario file | Purpose | Records | Ground-truth labels |
-|---|---:|---:|---:|
+|---|---|---:|---|
 | `data/scenario_normal.csv` | Normal-only activity used to estimate false positives | 70 | 70 normal, 0 anomalous |
 | `data/scenario_after_hours.csv` | Late-night / early-login anomaly scenario | 70 | 42 normal, 28 anomalous |
 | `data/scenario_exfiltration.csv` | Access-count spike and unusual-resource scenario | 70 | 42 normal, 28 anomalous |
@@ -44,7 +44,7 @@ Metrics:
 
 | Precision | Recall | F1 | False-positive rate | Predicted anomalies |
 |---:|---:|---:|---:|---:|
-| 0.0000 | 0.0000 | 0.0000 | 0.0143 | 1 |
+| N/A | N/A | N/A | 0.0143 | 1 |
 
 Interpretation: this scenario contains no labelled anomalies, so recall and F1
 are not meaningful as success measures here. The important result is the
@@ -121,6 +121,12 @@ false positives but miss more labelled anomalies.
 | 3.0 | 0.9804 | 0.8929 | 0.9346 | 0.0065 | 51 |
 | 3.5 | 1.0000 | 0.8214 | 0.9020 | 0.0000 | 46 |
 | 4.0 | 1.0000 | 0.8214 | 0.9020 | 0.0000 | 46 |
+
+Threshold `3.0` has the best F1 (`0.9346`) and a lower false-positive rate
+(`0.0065`). Threshold `2.5` remains the default because it preserves higher
+recall (`0.9107`), so it is sensitivity-focused rather than globally optimal.
+Threshold `3.0` may be better operationally if false positives matter more than
+catching the widest set of labelled anomalies.
 
 ## Strengths
 
