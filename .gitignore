@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# SQLite database (regenerated from CSV; never committed)
+instance/*.sqlite
+instance/*.sqlite3
+instance/*.db
+
+# OS / editor
+Thumbs.db
+.DS_Store
+.idea/
+.vscode/

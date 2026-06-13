@@ -1,0 +1,29 @@
+"""Flask application factory for the Insider Threat Detection System.
+
+Phase 0 scaffold: wires up configuration and a ``/health`` route only.
+Ingestion, baseline, scoring, and dashboard modules are registered here in
+later phases.
+"""
+from flask import Flask, jsonify
+
+from .config import Config
+
+
+def create_app(config_class=Config):
+    """Create and configure the Flask application.
+
+    Args:
+        config_class: configuration object to load (defaults to ``Config``).
+
+    Returns:
+        A configured :class:`flask.Flask` application instance.
+    """
+    app = Flask(__name__)
+    app.config.from_object(config_class)
+
+    @app.route("/health")
+    def health():
+        """Lightweight liveness check used by tests and the live demo."""
+        return jsonify(status="ok"), 200
+
+    return app
