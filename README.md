@@ -56,6 +56,12 @@ Endpoints:
 pytest
 ```
 
+## CI
+
+GitHub Actions runs on pushes and pull requests using Python 3.11. The workflow
+installs `requirements.txt`, rebuilds the deterministic demo database, and runs
+`pytest -q`.
+
 ## Load data (ingestion)
 
 Generate the synthetic CSVs, then ingest the baseline dataset into the SQLite database
