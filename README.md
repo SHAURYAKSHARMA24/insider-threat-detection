@@ -94,5 +94,4 @@ This artefact implements the design committed in the AT2 Challenge Definition Re
 
 ## Academic integrity
 
-All data is synthetic; no real or personal data is processed (AT2 NFR2). Use of AI
-assistance during development is logged for the AT4 Code Manifest.
+All data is synthetic; no real or personal data is processed (AT2 NFR2).
