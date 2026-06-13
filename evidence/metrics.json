@@ -1,0 +1,99 @@
+{
+  "threshold": 2.5,
+  "per_scenario": {
+    "scenario_normal.csv": {
+      "true_positives": 0,
+      "false_positives": 1,
+      "true_negatives": 69,
+      "false_negatives": 0,
+      "recall": 0.0,
+      "false_positive_rate": 0.014285714285714285,
+      "precision": 0.0,
+      "f1": 0.0,
+      "total_records": 70,
+      "total_labelled_anomalies": 0,
+      "total_predicted_anomalies": 1
+    },
+    "scenario_after_hours.csv": {
+      "true_positives": 28,
+      "false_positives": 0,
+      "true_negatives": 42,
+      "false_negatives": 0,
+      "recall": 1.0,
+      "false_positive_rate": 0.0,
+      "precision": 1.0,
+      "f1": 1.0,
+      "total_records": 70,
+      "total_labelled_anomalies": 28,
+      "total_predicted_anomalies": 28
+    },
+    "scenario_exfiltration.csv": {
+      "true_positives": 23,
+      "false_positives": 2,
+      "true_negatives": 40,
+      "false_negatives": 5,
+      "recall": 0.8214285714285714,
+      "false_positive_rate": 0.047619047619047616,
+      "precision": 0.92,
+      "f1": 0.8679245283018867,
+      "total_records": 70,
+      "total_labelled_anomalies": 28,
+      "total_predicted_anomalies": 25
+    }
+  },
+  "combined": {
+    "true_positives": 51,
+    "false_positives": 3,
+    "true_negatives": 151,
+    "false_negatives": 5,
+    "recall": 0.9107142857142857,
+    "false_positive_rate": 0.01948051948051948,
+    "precision": 0.9444444444444444,
+    "f1": 0.9272727272727271,
+    "total_records": 210,
+    "total_labelled_anomalies": 56,
+    "total_predicted_anomalies": 54
+  },
+  "threshold_sensitivity": [
+    {
+      "threshold": 2.0,
+      "precision": 0.796875,
+      "recall": 0.9107142857142857,
+      "f1": 0.85,
+      "false_positive_rate": 0.08441558441558442,
+      "predicted_anomaly_count": 64
+    },
+    {
+      "threshold": 2.5,
+      "precision": 0.9444444444444444,
+      "recall": 0.9107142857142857,
+      "f1": 0.9272727272727271,
+      "false_positive_rate": 0.01948051948051948,
+      "predicted_anomaly_count": 54
+    },
+    {
+      "threshold": 3.0,
+      "precision": 0.9803921568627451,
+      "recall": 0.8928571428571429,
+      "f1": 0.9345794392523364,
+      "false_positive_rate": 0.006493506493506494,
+      "predicted_anomaly_count": 51
+    },
+    {
+      "threshold": 3.5,
+      "precision": 1.0,
+      "recall": 0.8214285714285714,
+      "f1": 0.9019607843137255,
+      "false_positive_rate": 0.0,
+      "predicted_anomaly_count": 46
+    },
+    {
+      "threshold": 4.0,
+      "precision": 1.0,
+      "recall": 0.8214285714285714,
+      "f1": 0.9019607843137255,
+      "false_positive_rate": 0.0,
+      "predicted_anomaly_count": 46
+    }
+  ]
+}

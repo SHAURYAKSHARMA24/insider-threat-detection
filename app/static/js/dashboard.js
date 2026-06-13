@@ -9,6 +9,7 @@
 
   const SUMMARY_URL = "/api/summary";
   const ANOMALIES_URL = "/api/anomalies";
+  const EXPORT_URL = "/api/anomalies.csv";
 
   let currentRows = [];
 
@@ -67,7 +68,7 @@
     }
   }
 
-  function buildAnomaliesUrl() {
+  function buildFilterParams() {
     const params = new URLSearchParams();
     const user = $("f-user").value.trim();
     const start = $("f-start").value;
@@ -77,8 +78,17 @@
     if (start) params.set("start", start);
     if (end) params.set("end", end);
     if (severity) params.set("severity", severity);
-    const qs = params.toString();
+    return params;
+  }
+
+  function buildAnomaliesUrl() {
+    const qs = buildFilterParams().toString();
     return qs ? (ANOMALIES_URL + "?" + qs) : ANOMALIES_URL;
+  }
+
+  function exportCsv() {
+    const qs = buildFilterParams().toString();
+    window.location.href = qs ? (EXPORT_URL + "?" + qs) : EXPORT_URL;
   }
 
   function renderRows(rows) {
@@ -168,6 +178,7 @@
   document.addEventListener("DOMContentLoaded", () => {
     $("btn-apply").addEventListener("click", loadAnomalies);
     $("btn-clear").addEventListener("click", clearFilters);
+    $("btn-export").addEventListener("click", exportCsv);
     loadSummary();
     loadAnomalies();
   });

@@ -27,7 +27,8 @@ data/generate_data.py
 | Baselines | `app/baseline.py` | Per-user mean, standard deviation, resource distribution |
 | Scoring | `app/scoring.py` | Z-score features, resource rarity, responsible feature |
 | Anomaly storage | `app/anomalies.py` | Severity bands and stored explanations |
-| Flask routes | `app/routes.py` | Dashboard route, `/api/summary`, `/api/anomalies` filters |
+| Flask routes | `app/routes.py` | Dashboard route, `/api/summary`, `/api/anomalies` filters, `/api/anomalies.csv` export (FR10) |
+| One-command rebuild | `scripts/rebuild.py` | Deterministic reset + regenerate + ingest + baseline + score |
 | Dashboard | `app/templates/dashboard.html` | Main dashboard shell |
 | Dashboard JS | `app/static/js/dashboard.js` | API consumption and filtering UI behaviour |
 | Dashboard CSS | `app/static/css/styles.css` | Presentation only |
@@ -49,7 +50,7 @@ data/generate_data.py
 | FR9 / Objective 4 evaluation | `app/evaluation.py`, `tests/test_evaluation.py`, `docs/evaluation-report.md` |
 | NFR1 explainability | `app/scoring.py`, `Anomalies.anomaly_reason`, dashboard row detail |
 | NFR2 synthetic data only | `data/generate_data.py`, `data/*.csv` |
-| FR10 CSV export | Not implemented; do not present as complete |
+| FR10 CSV export | `app/routes.py` (`GET /api/anomalies.csv`), dashboard Download CSV button, `tests/test_routes.py` |
 
 ## Walkthrough Narrative
 
@@ -70,6 +71,7 @@ just showing that anomalies exist.
 | `tests/test_baseline.py` | Baseline calculations and eligible users |
 | `tests/test_scoring.py` | Z-score, rarity, responsible feature |
 | `tests/test_anomalies.py` | Severity labels and anomaly persistence |
-| `tests/test_routes.py` | API summary and anomaly filtering |
+| `tests/test_routes.py` | API summary, anomaly filtering, CSV export (FR10), SQL-injection safety |
 | `tests/test_dashboard.py` | Dashboard route and UI assets |
 | `tests/test_evaluation.py` | Confusion matrix, metrics, threshold sensitivity, DB isolation |
+| `tests/test_evaluation_cli.py` | `python -m app.evaluation` aggregation and saved evidence files |

@@ -4,13 +4,11 @@
 
 - Confirm the repository is clean enough for demonstration.
 - Activate the virtual environment.
-- Rebuild deterministic data if needed with `python data/generate_data.py`.
-- Rebuild the demo database:
+- Rebuild the demo database in one command (resets the DB, then regenerates,
+  ingests, builds baselines, and scores anomalies):
 
 ```powershell
-python -m app.ingest
-python -m app.baseline
-python -m app.anomalies
+python scripts/rebuild.py
 ```
 
 - Run tests with `pytest -q`.
@@ -23,6 +21,7 @@ python -m app.anomalies
 - Show the anomaly table.
 - Click an anomaly row and explain the row-level reason.
 - Filter by severity in the dashboard.
+- Click **Download CSV** to export the filtered anomalies (FR10).
 - Show the API equivalent: `/api/anomalies?severity=High`.
 - Show `/api/summary`.
 
@@ -36,9 +35,11 @@ http://127.0.0.1:5000/api/summary
 http://127.0.0.1:5000/api/anomalies
 http://127.0.0.1:5000/api/anomalies?severity=High
 http://127.0.0.1:5000/api/anomalies?user=U017
+http://127.0.0.1:5000/api/anomalies.csv?severity=High
 ```
 
-Point out that the API is read-only and uses parameterised SQL filters.
+Point out that the API is read-only and uses parameterised SQL filters, and that
+the CSV endpoint reuses the same filter logic (FR10).
 
 ## Evaluation Evidence To Mention
 
@@ -82,12 +83,14 @@ recall and is more sensitivity-focused.
 - The detector uses transparent statistics, not machine learning.
 - Subtle exfiltration can be missed when feature deviations remain below the
   threshold.
-- No authentication, deployment, real-time monitoring, pagination, charts, or
-  CSV export are implemented.
+- No authentication, deployment, real-time monitoring, pagination, or charts are
+  implemented.
 
 ## Final Check
 
-- Do not claim FR10 or CSV export is complete.
+- FR10 CSV export *is* implemented (`/api/anomalies.csv` + Download CSV button) —
+  demo it, but don't overstate it: it is a filtered table export, not a formatted
+  report.
 - Do not describe threshold `2.5` as globally optimal.
 - Do not use accuracy as the headline evaluation metric.
 - Mention precision, recall, F1, false-positive rate, and threshold sensitivity.

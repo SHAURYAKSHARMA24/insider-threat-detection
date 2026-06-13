@@ -38,13 +38,18 @@ pip install -r requirements.txt
 
 ## Run
 
+Rebuild the whole demo database in one command (regenerate → ingest → baseline →
+score), then start the app:
+
 ```powershell
-python data/generate_data.py
-python -m app.ingest
-python -m app.baseline
-python -m app.anomalies
+python scripts/rebuild.py     # one-command, deterministic rebuild (resets the DB first)
 python run.py
 ```
+
+`scripts/rebuild.py` is the recommended path: ingestion is intentionally *not*
+idempotent, so it resets the database first to guarantee a correct rebuild
+(12,092 rows ingested, 20 baselines, 299 anomalies: 256 Low / 41 Medium / 2 High).
+The equivalent manual steps are shown under [Load data](#load-data-ingestion).
 
 Open `http://127.0.0.1:5000/` for the main dashboard demo.
 
@@ -56,6 +61,8 @@ Endpoints:
 - `GET /api/summary` — total logs, total anomalies, high-risk count, users monitored
 - `GET /api/anomalies` — flagged anomalies as JSON; optional filters `user`, `start`, `end`,
   `severity` (e.g. `/api/anomalies?severity=High&start=2025-05-01`)
+- `GET /api/anomalies.csv` — the same filtered anomalies as a downloadable CSV (FR10);
+  the dashboard's **Download CSV** button hits this endpoint with the active filters
 
 ## Test
 
@@ -71,9 +78,18 @@ installs `requirements.txt`, rebuilds the deterministic demo database, and runs
 
 ## Evaluation
 
-Labelled scenario evaluation evidence is documented in
-`docs/evaluation-report.md`, including per-scenario confusion matrices,
-combined precision/recall/F1/false-positive rate, and threshold sensitivity.
+Reproduce the labelled scenario evaluation and write the evidence files in one
+command:
+
+```powershell
+python -m app.evaluation
+```
+
+This prints per-scenario confusion matrices, combined precision/recall/F1/
+false-positive rate, and threshold sensitivity, and saves `evidence/metrics.json`
+(machine-readable) and `evidence/evaluation_output.txt` (the printed report). The
+discussion in `docs/evaluation-report.md` is derived from this generated output,
+so the headline numbers are reproducible rather than hand-transcribed.
 
 ## Load data (ingestion)
 
@@ -118,7 +134,7 @@ This artefact implements the design committed in the AT2 Challenge Definition Re
 | FR5 / FR6 flagging + severity bands | `app/scoring.py`; thresholds in `app/config.py` |
 | FR7 / FR8 dashboard + filtering | `app/routes.py` + templates (Phases 7-8) |
 | FR9 / Objective 4 scenario evaluation | `app/evaluation.py` (Phase 9) |
-| FR10 CSV export | Deferred / not implemented |
+| FR10 CSV export | `GET /api/anomalies.csv` in `app/routes.py` + dashboard **Download CSV** button |
 | NFR1 explainable reason | `Anomalies.anomaly_reason` column |
 | NFR2 synthetic data only | `data/generate_data.py` (Phase 1) |
 

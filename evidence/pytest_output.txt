@@ -1,0 +1,21 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.1, pytest-8.3.4, pluggy-1.6.0
+cachedir: .tmp\.pytest_cache
+rootdir: C:\Users\Shaurya K Sharma\_review\insider-threat-detection
+configfile: pytest.ini
+testpaths: tests
+collected 115 items
+
+tests\test_anomalies.py ..................                               [ 15%]
+tests\test_app_factory.py ...                                            [ 18%]
+tests\test_baseline.py .............                                     [ 29%]
+tests\test_dashboard.py ....                                             [ 33%]
+tests\test_data_generation.py ..........                                 [ 41%]
+tests\test_db.py .......                                                 [ 47%]
+tests\test_evaluation.py ......                                          [ 53%]
+tests\test_evaluation_cli.py ....                                        [ 56%]
+tests\test_ingest.py ..............                                      [ 68%]
+tests\test_routes.py ..............                                      [ 80%]
+tests\test_scoring.py ......................                             [100%]
+
+============================ 115 passed in 14.53s =============================

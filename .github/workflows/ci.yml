@@ -25,11 +25,10 @@ jobs:
           pip install -r requirements.txt
 
       - name: Build demo database
-        run: |
-          python data/generate_data.py
-          python -m app.ingest
-          python -m app.baseline
-          python -m app.anomalies
+        run: python scripts/rebuild.py
 
       - name: Run tests
         run: pytest -q
+
+      - name: Run labelled evaluation
+        run: python -m app.evaluation

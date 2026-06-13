@@ -3,7 +3,16 @@
 This module compares detector predictions with ground-truth labels row by row.
 It deliberately performs no ingestion and no anomaly storage: scenario CSV rows
 are scored in memory against the existing persisted per-user baselines.
+
+Run as a command to reproduce the published metrics and save them as evidence:
+
+    python -m app.evaluation
+
+This writes ``evidence/metrics.json`` (machine-readable) and
+``evidence/evaluation_output.txt`` (the printed report) so the numbers in
+``docs/evaluation-report.md`` are generated, not hand-transcribed.
 """
+import json
 from pathlib import Path
 
 from app.anomalies import classify_severity
@@ -14,6 +23,16 @@ from app.scoring import score_record
 
 LABEL_ANOMALOUS = "anomalous"
 DEFAULT_THRESHOLDS = (2.0, 2.5, 3.0, 3.5, 4.0)
+
+# Labelled Objective 4 scenarios, evaluated together for the combined metrics.
+SCENARIO_FILENAMES = (
+    "scenario_normal.csv",
+    "scenario_after_hours.csv",
+    "scenario_exfiltration.csv",
+)
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DATA_DIR = PROJECT_ROOT / "data"
+EVIDENCE_DIR = PROJECT_ROOT / "evidence"
 
 
 def _latest_baselines(db_path):
@@ -213,3 +232,107 @@ def threshold_sensitivity(rows, thresholds=DEFAULT_THRESHOLDS):
             }
         )
     return results
+
+
+def evaluate_all(db_path=None, threshold=None, scenario_dir=None):
+    """Run every labelled scenario and return per-scenario + combined results.
+
+    Args:
+        db_path: SQLite database with the ``Baselines`` table. Defaults to
+            :attr:`app.config.Config.DB_PATH`.
+        threshold: prediction threshold. Defaults to ``Config.Z_LOW``.
+        scenario_dir: directory holding the scenario CSVs. Defaults to ``data/``.
+
+    Returns:
+        A JSON-serialisable dict with ``threshold``, ``per_scenario`` (filename
+        -> metrics), ``combined`` (metrics over all rows), and
+        ``threshold_sensitivity``.
+    """
+    if db_path is None:
+        db_path = Config.DB_PATH
+    if threshold is None:
+        threshold = Config.Z_LOW
+    if scenario_dir is None:
+        scenario_dir = DATA_DIR
+
+    per_scenario = {}
+    combined_rows = []
+    for filename in SCENARIO_FILENAMES:
+        rows = run_scenario(Path(scenario_dir) / filename, db_path=db_path, threshold=threshold)
+        combined_rows.extend(rows)
+        per_scenario[filename] = metrics(rows)
+
+    return {
+        "threshold": threshold,
+        "per_scenario": per_scenario,
+        "combined": metrics(combined_rows),
+        "threshold_sensitivity": threshold_sensitivity(combined_rows),
+    }
+
+
+def format_report(results):
+    """Render :func:`evaluate_all` output as a plain-text report for evidence."""
+    lines = []
+    lines.append("Insider Threat Detection -- Labelled Scenario Evaluation")
+    lines.append(f"Prediction threshold: {results['threshold']}")
+    lines.append("")
+    lines.append("Per-scenario results")
+    header = f"{'scenario':<28}{'TP':>4}{'FP':>4}{'TN':>5}{'FN':>4}{'Prec':>9}{'Rec':>8}{'F1':>8}{'FPR':>8}"
+    lines.append(header)
+    lines.append("-" * len(header))
+    for name, m in results["per_scenario"].items():
+        lines.append(
+            f"{name:<28}{m['true_positives']:>4}{m['false_positives']:>4}"
+            f"{m['true_negatives']:>5}{m['false_negatives']:>4}"
+            f"{m['precision']:>9.4f}{m['recall']:>8.4f}{m['f1']:>8.4f}"
+            f"{m['false_positive_rate']:>8.4f}"
+        )
+
+    c = results["combined"]
+    lines.append("")
+    lines.append("Combined results")
+    lines.append(
+        f"  records={c['total_records']}  labelled_anomalies={c['total_labelled_anomalies']}"
+        f"  predicted_anomalies={c['total_predicted_anomalies']}"
+    )
+    lines.append(
+        f"  precision={c['precision']:.4f}  recall={c['recall']:.4f}"
+        f"  f1={c['f1']:.4f}  false_positive_rate={c['false_positive_rate']:.4f}"
+    )
+
+    lines.append("")
+    lines.append("Threshold sensitivity")
+    th_header = f"{'threshold':>10}{'Prec':>9}{'Rec':>8}{'F1':>8}{'FPR':>8}{'predicted':>11}"
+    lines.append(th_header)
+    lines.append("-" * len(th_header))
+    for row in results["threshold_sensitivity"]:
+        lines.append(
+            f"{row['threshold']:>10.1f}{row['precision']:>9.4f}{row['recall']:>8.4f}"
+            f"{row['f1']:>8.4f}{row['false_positive_rate']:>8.4f}"
+            f"{row['predicted_anomaly_count']:>11}"
+        )
+    return "\n".join(lines)
+
+
+def main(db_path=None, evidence_dir=None):
+    """Run the full labelled evaluation, print it, and save evidence files."""
+    if evidence_dir is None:
+        evidence_dir = EVIDENCE_DIR
+    evidence_dir = Path(evidence_dir)
+    evidence_dir.mkdir(parents=True, exist_ok=True)
+
+    results = evaluate_all(db_path=db_path)
+    report = format_report(results)
+    print(report)
+
+    (evidence_dir / "metrics.json").write_text(
+        json.dumps(results, indent=2), encoding="utf-8"
+    )
+    (evidence_dir / "evaluation_output.txt").write_text(report + "\n", encoding="utf-8")
+    print(f"\nSaved evidence to {evidence_dir / 'metrics.json'} and "
+          f"{evidence_dir / 'evaluation_output.txt'}")
+    return results
+
+
+if __name__ == "__main__":
+    main()

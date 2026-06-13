@@ -4,6 +4,8 @@ A module-scoped fixture builds one populated temporary database (baseline +
 after-hours scenario, fully processed) and returns a Flask test client pointed
 at it.
 """
+import csv
+import io
 from pathlib import Path
 
 import pytest
@@ -132,6 +134,46 @@ def test_empty_result_for_unknown_user(client):
 def test_empty_result_for_unknown_severity(client):
     body = client.get("/api/anomalies?severity=Critical").get_json()
     assert body["count"] == 0
+
+
+# --------------------------------------------------------------------------- #
+# CSV export (FR10)
+# --------------------------------------------------------------------------- #
+def _parse_csv(resp):
+    return list(csv.reader(io.StringIO(resp.get_data(as_text=True))))
+
+
+def test_export_csv_headers_and_attachment(client):
+    resp = client.get("/api/anomalies.csv")
+    assert resp.status_code == 200
+    assert "text/csv" in resp.content_type
+    disposition = resp.headers["Content-Disposition"]
+    assert "attachment" in disposition and "anomalies.csv" in disposition
+
+    rows = _parse_csv(resp)
+    assert set(rows[0]) == ANOMALY_KEYS
+    # Data row count matches the unfiltered JSON endpoint.
+    json_count = client.get("/api/anomalies").get_json()["count"]
+    assert len(rows) - 1 == json_count
+
+
+def test_export_csv_respects_severity_filter(client):
+    resp = client.get("/api/anomalies.csv?severity=High")
+    rows = _parse_csv(resp)
+    severity_index = rows[0].index("severity_level")
+    json_high = client.get("/api/anomalies?severity=High").get_json()["count"]
+    assert len(rows) - 1 == json_high
+    assert all(row[severity_index] == "High" for row in rows[1:])
+
+
+def test_export_csv_injection_safe(client):
+    resp = client.get(
+        "/api/anomalies.csv",
+        query_string={"severity": "High'); DROP TABLE Anomalies;--"},
+    )
+    assert resp.status_code == 200
+    assert len(_parse_csv(resp)) == 1  # header only, no matched rows
+    assert client.get("/api/summary").get_json()["total_anomalies"] > 0
 
 
 # --------------------------------------------------------------------------- #
