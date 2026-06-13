@@ -5,9 +5,9 @@ insider behaviour from structured activity data using **per-user statistical bas
 **Z-score deviation scoring**, configurable **severity thresholds**, and an **explainable**
 web dashboard.
 
-> **Status:** Phase 0 scaffold. Ingestion, baselines, scoring, dashboard, and evaluation are
-> added in later phases per the implementation plan. This phase delivers a runnable Flask
-> skeleton, configuration, the database schema, and the synthetic-data specification only.
+> **Status:** AT3-ready artefact. The project includes deterministic synthetic data
+> generation, SQLite ingestion, per-user baselines, anomaly scoring and severity labels,
+> Flask JSON APIs, a dashboard UI, labelled scenario evaluation evidence, tests, and CI.
 
 ## Aim
 
@@ -39,9 +39,16 @@ pip install -r requirements.txt
 ## Run
 
 ```powershell
+python data/generate_data.py
+python -m app.ingest
+python -m app.baseline
+python -m app.anomalies
 python run.py
-# then open http://127.0.0.1:5000/health  ->  {"status": "ok"}
 ```
+
+Open `http://127.0.0.1:5000/` for the main dashboard demo.
+
+Secondary health check: `http://127.0.0.1:5000/health` returns `{"status": "ok"}`.
 
 Endpoints:
 
@@ -61,6 +68,12 @@ pytest
 GitHub Actions runs on pushes and pull requests using Python 3.11. The workflow
 installs `requirements.txt`, rebuilds the deterministic demo database, and runs
 `pytest -q`.
+
+## Evaluation
+
+Labelled scenario evaluation evidence is documented in
+`docs/evaluation-report.md`, including per-scenario confusion matrices,
+combined precision/recall/F1/false-positive rate, and threshold sensitivity.
 
 ## Load data (ingestion)
 
@@ -83,7 +96,7 @@ severity threshold (Low/Medium/High) in the `Anomalies` table.
 ## Project structure
 
 ```
-app/          Flask app factory, config, and (later) ingestion/scoring/routes
+app/          Flask app factory, configuration, ingestion, baselines, scoring, APIs, evaluation
 data/         schema.sql, synthetic data generator, data dictionary, CSVs
 tests/        pytest suite
 docs/         architecture notes, evaluation report, demo script
@@ -105,6 +118,7 @@ This artefact implements the design committed in the AT2 Challenge Definition Re
 | FR5 / FR6 flagging + severity bands | `app/scoring.py`; thresholds in `app/config.py` |
 | FR7 / FR8 dashboard + filtering | `app/routes.py` + templates (Phases 7-8) |
 | FR9 / Objective 4 scenario evaluation | `app/evaluation.py` (Phase 9) |
+| FR10 CSV export | Deferred / not implemented |
 | NFR1 explainable reason | `Anomalies.anomaly_reason` column |
 | NFR2 synthetic data only | `data/generate_data.py` (Phase 1) |
 

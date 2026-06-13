@@ -1,11 +1,11 @@
-"""Backend API routes for the Insider Threat Detection System (Phase 7).
+"""Dashboard and API routes for the Insider Threat Detection System.
 
 Read-only JSON endpoints that surface stored anomalies and summary counts for
 the dashboard (FR2, FR7, FR8). All filtering uses parameterised SQL; no values
 are ever string-interpolated into a query.
 
-The HTML/CSS/JS dashboard is Phase 8 -- ``/`` here returns a small health-style
-JSON landing that the dashboard template will later replace.
+The root route renders the dashboard shell; the dashboard then consumes the
+JSON API endpoints client-side.
 """
 from flask import Blueprint, jsonify, render_template, request
 

@@ -1,8 +1,7 @@
 """Flask application factory for the Insider Threat Detection System.
 
-Phase 0 scaffold: wires up configuration and a ``/health`` route only.
-Ingestion, baseline, scoring, and dashboard modules are registered here in
-later phases.
+Creates the configured Flask app, registers the SQLite data layer, exposes a
+lightweight ``/health`` route, and registers the dashboard/API blueprint.
 """
 from flask import Flask, jsonify
 
