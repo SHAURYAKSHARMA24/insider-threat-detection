@@ -59,10 +59,13 @@ inserts users and activity records:
 python data/generate_data.py     # writes data/*.csv (deterministic)
 python -m app.ingest             # ingests data/activity_baseline.csv, prints a summary
 python -m app.baseline           # builds per-user baselines into the Baselines table
+python -m app.anomalies          # scores activity, stores flagged anomalies (clears first)
 ```
 
 `python -m app.baseline` writes one row per eligible user (>= `MIN_RECORDS` activity records)
-to `Baselines`; users below the threshold are excluded and logged.
+to `Baselines`; users below the threshold are excluded and logged. `python -m app.anomalies`
+scores every activity record against its user's baseline and stores those at or above the
+severity threshold (Low/Medium/High) in the `Anomalies` table.
 
 ## Project structure
 
