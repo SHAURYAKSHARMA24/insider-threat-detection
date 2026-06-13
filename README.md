@@ -49,6 +49,17 @@ python run.py
 pytest
 ```
 
+## Load data (ingestion)
+
+Generate the synthetic CSVs, then ingest the baseline dataset into the SQLite database
+(`instance/itd.sqlite`). Ingestion creates the schema if needed, validates every row, and
+inserts users and activity records:
+
+```powershell
+python data/generate_data.py     # writes data/*.csv (deterministic)
+python -m app.ingest             # ingests data/activity_baseline.csv, prints a summary
+```
+
 ## Project structure
 
 ```
