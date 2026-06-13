@@ -43,6 +43,13 @@ python run.py
 # then open http://127.0.0.1:5000/health  ->  {"status": "ok"}
 ```
 
+Backend API endpoints (JSON):
+
+- `GET /` — health-style landing
+- `GET /api/summary` — total logs, total anomalies, high-risk count, users monitored
+- `GET /api/anomalies` — flagged anomalies; optional filters `user`, `start`, `end`, `severity`
+  (e.g. `/api/anomalies?severity=High&start=2025-05-01`)
+
 ## Test
 
 ```powershell

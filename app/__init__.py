@@ -31,4 +31,9 @@ def create_app(config_class=Config):
         """Lightweight liveness check used by tests and the live demo."""
         return jsonify(status="ok"), 200
 
+    # Register the backend API routes (dashboard data + filters).
+    from . import routes
+
+    app.register_blueprint(routes.bp)
+
     return app
