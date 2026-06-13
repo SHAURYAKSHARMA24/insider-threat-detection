@@ -239,3 +239,36 @@ def test_stored_anomalies_reference_valid_rows(tmp_path):
     assert fk_on == 1
     assert orphan_users == 0
     assert orphan_logs == 0
+
+
+# --------------------------------------------------------------------------- #
+# 7. Calibration regression (Phase 6.5)
+# --------------------------------------------------------------------------- #
+def test_calibration_keeps_baseline_false_positive_rate_low(tmp_path):
+    """On normal baseline data only, the anomaly rate must be well under the
+    pre-calibration 8.2% (target ~2-3%)."""
+    db_path = str(tmp_path / "itd.sqlite")
+    ingest_activity(str(BASELINE_CSV), db_path=db_path)
+    build_baselines(db_path=db_path)
+
+    summary = process_unscored_activity(db_path=db_path, clear_existing=True)
+    rate = summary["anomalies_created"] / summary["records_scored"]
+    assert rate < 0.05  # comfortably below the 8.2% Phase 6 result
+
+
+def test_after_hours_anomalies_still_detected(tmp_path):
+    """Calibration must not weaken login-time detection of after-hours activity."""
+    db_path = str(tmp_path / "itd.sqlite")
+    ingest_activity(str(BASELINE_CSV), db_path=db_path)
+    build_baselines(db_path=db_path)
+    ingest_activity(str(AFTER_HOURS_CSV), db_path=db_path)
+    process_unscored_activity(db_path=db_path, clear_existing=True)
+
+    conn = connect(db_path)
+    high_login = conn.execute(
+        "SELECT COUNT(*) FROM Anomalies "
+        "WHERE severity_level = 'High' AND anomaly_reason LIKE 'Abnormal login_time%'"
+    ).fetchone()[0]
+    conn.close()
+    # The scenario injects 28 after-hours anomalies with very large login Z-scores.
+    assert high_login >= 20

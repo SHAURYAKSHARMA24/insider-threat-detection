@@ -10,9 +10,11 @@ Deviation scales are deliberately made comparable so a single threshold can
 later apply to all three features:
 
 * continuous features (login hour, access count) use the absolute **Z-score**;
-* the categorical ``resource_type`` uses **surprisal** ``-log(probability)``,
-  which yields ~0.7 for a very common resource, ~3 for a rare one, and ~6.9 for
-  an unseen one -- on roughly the same scale as a Z-score.
+* the categorical ``resource_type`` uses **calibrated surprisal**
+  ``max(0, -log(p) + log(0.05))``, which yields 0.0 for common or
+  moderately-rare resources (p >= 0.05), ~1.6 for a low-frequency legitimate 1%
+  resource (below the anomaly threshold), and ~3.9 for an unseen one -- on
+  roughly the same scale as a Z-score.
 """
 import json
 import math
@@ -23,8 +25,12 @@ from app.baseline import login_time_to_hours
 # high enough to flag, but finite (never inf/NaN).
 SD_ZERO_DEVIATION = 999.0
 
-# Floor probability for an unseen resource type, so surprisal stays finite.
-UNSEEN_RESOURCE_FLOOR = 0.001
+# Categorical rarity calibration (Phase 6.5). Raw surprisal -log(p) is offset by
+# a reference probability so that legitimate low-frequency resources (>= 5%)
+# score 0, while genuinely rare or unseen resources still score highly.
+RESOURCE_RARITY_REFERENCE_PROBABILITY = 0.05
+# Floor probability for an unseen resource type, so the score stays finite.
+RESOURCE_UNSEEN_PROBABILITY = 0.001
 
 # Deterministic tie-break order when two features share the maximum score.
 FEATURE_ORDER = ["login_time", "access_count", "resource_type"]
@@ -43,11 +49,15 @@ def z_score(value, mean, sd):
 
 
 def resource_rarity(resource_type, distribution_json):
-    """Convert categorical rarity into a deviation-equivalent score.
+    """Convert categorical rarity into a calibrated deviation-equivalent score.
 
-    Uses surprisal ``-log(probability)``: common resources score low, rare ones
-    higher, and an unseen resource is floored at
-    :data:`UNSEEN_RESOURCE_FLOOR` so the score stays high but finite.
+    Uses calibrated surprisal
+    ``max(0, -log(p) + log(REFERENCE))`` with ``REFERENCE = 0.05``: resources at
+    or above the reference probability score 0, lower-frequency resources score
+    progressively higher, and an unseen resource is floored at
+    :data:`RESOURCE_UNSEEN_PROBABILITY` (~3.9). The offset prevents legitimate
+    low-frequency baseline resources (e.g. a 1% resource, ~1.6) from exceeding
+    the anomaly threshold while still flagging genuinely rare/unseen ones.
 
     Args:
         resource_type: the resource category to score.
@@ -77,8 +87,10 @@ def resource_rarity(resource_type, distribution_json):
 
     probability = distribution.get(resource_type, 0.0)
     if probability <= 0:
-        probability = UNSEEN_RESOURCE_FLOOR
-    return -math.log(probability)
+        probability = RESOURCE_UNSEEN_PROBABILITY
+    raw_score = -math.log(probability)
+    offset = -math.log(RESOURCE_RARITY_REFERENCE_PROBABILITY)
+    return max(0.0, raw_score - offset)
 
 
 def responsible_feature(scores):

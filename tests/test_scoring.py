@@ -62,13 +62,13 @@ def test_z_score_never_nan_or_inf():
 # 2. Resource rarity
 # --------------------------------------------------------------------------- #
 def test_common_resource_scores_lower_than_rare():
-    dist = '{"HR": 0.6, "General": 0.3, "Finance": 0.1}'
-    assert resource_rarity("HR", dist) < resource_rarity("Finance", dist)
+    dist = '{"Common": 0.6, "Rare": 0.01}'
+    assert resource_rarity("Common", dist) < resource_rarity("Rare", dist)
 
 
 def test_unseen_resource_scores_higher_than_rare():
-    dist = '{"HR": 0.6, "General": 0.3, "Finance": 0.1}'
-    assert resource_rarity("SourceCode", dist) > resource_rarity("Finance", dist)
+    dist = '{"Common": 0.6, "Rare": 0.01}'
+    assert resource_rarity("Unseen", dist) > resource_rarity("Rare", dist)
 
 
 def test_resource_rarity_invalid_json_raises():
@@ -88,6 +88,26 @@ def test_resource_rarity_is_finite():
         assert math.isfinite(resource_rarity(resource, dist))
 
 
+# --- Calibration (Phase 6.5) --- #
+def test_calibration_common_and_reference_score_zero():
+    # p >= reference (0.05) clamps to 0.0.
+    assert resource_rarity("Common", '{"Common": 0.60}') == pytest.approx(0.0)
+    assert resource_rarity("Ref", '{"Ref": 0.05}') == pytest.approx(0.0)
+
+
+def test_calibration_one_percent_resource_is_below_threshold():
+    score = resource_rarity("Low", '{"Low": 0.01}')
+    assert score == pytest.approx(-math.log(0.01) + math.log(0.05))  # ~1.609
+    assert score < 2.5  # legitimate low-frequency resource is not flagged
+
+
+def test_calibration_unseen_resource_above_threshold_and_finite():
+    score = resource_rarity("Unseen", '{"HR": 1.0}')
+    assert score == pytest.approx(-math.log(0.001) + math.log(0.05))  # ~3.912
+    assert score > 2.5
+    assert math.isfinite(score)
+
+
 # --------------------------------------------------------------------------- #
 # 3. score_record
 # --------------------------------------------------------------------------- #
@@ -96,7 +116,7 @@ def test_score_record_login_time_responsible():
     scored = score_record(record, BASE)
     assert scored["login_time_z"] == pytest.approx(3.0)       # |12-9|/1
     assert scored["access_count_z"] == pytest.approx(0.0)     # |20-20|/5
-    assert scored["resource_type_z"] == pytest.approx(-math.log(0.6))
+    assert scored["resource_type_z"] == pytest.approx(0.0)    # HR p=0.6 -> calibrated 0
     assert scored["deviation_score"] == pytest.approx(3.0)    # the max
     assert scored["responsible_feature"] == "login_time"
     assert "login_time" in scored["reason"]
@@ -116,8 +136,16 @@ def test_score_record_resource_type_responsible():
     record = {"login_time": "09:00", "access_count": 20, "resource_type": "Confidential"}
     scored = score_record(record, BASE)
     assert scored["responsible_feature"] == "resource_type"
-    assert scored["deviation_score"] == pytest.approx(-math.log(0.001))
+    assert scored["deviation_score"] == pytest.approx(-math.log(0.001) + math.log(0.05))
     assert "Rare resource_type" in scored["reason"]
+
+
+def test_score_record_normal_resource_does_not_dominate():
+    """A fully normal record's common resource scores 0 (no misleading anomaly)."""
+    record = {"login_time": "09:00", "access_count": 20, "resource_type": "HR"}
+    scored = score_record(record, BASE)
+    assert scored["resource_type_z"] == pytest.approx(0.0)
+    assert scored["deviation_score"] == pytest.approx(0.0)  # nothing deviates
 
 
 # --------------------------------------------------------------------------- #
