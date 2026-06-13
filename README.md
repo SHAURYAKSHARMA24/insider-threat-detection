@@ -58,7 +58,11 @@ inserts users and activity records:
 ```powershell
 python data/generate_data.py     # writes data/*.csv (deterministic)
 python -m app.ingest             # ingests data/activity_baseline.csv, prints a summary
+python -m app.baseline           # builds per-user baselines into the Baselines table
 ```
+
+`python -m app.baseline` writes one row per eligible user (>= `MIN_RECORDS` activity records)
+to `Baselines`; users below the threshold are excluded and logged.
 
 ## Project structure
 
