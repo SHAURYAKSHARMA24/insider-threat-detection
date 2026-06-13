@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Insider Threat Detection — Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <header class="app-header">
+    <div class="container header-inner">
+      <h1>Insider Threat Detection</h1>
+      <p class="subtitle">Explainable behaviour-based anomaly dashboard</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="error-banner" class="error-banner" hidden role="alert"></div>
+
+    <!-- Summary tiles -->
+    <section class="tiles" id="summary-tiles" aria-label="Summary">
+      <div class="tile">
+        <span class="tile-value" id="tile-logs">—</span>
+        <span class="tile-label">Activity logs</span>
+      </div>
+      <div class="tile">
+        <span class="tile-value" id="tile-anomalies">—</span>
+        <span class="tile-label">Anomalies</span>
+      </div>
+      <div class="tile tile-high">
+        <span class="tile-value" id="tile-high">—</span>
+        <span class="tile-label">High-risk</span>
+      </div>
+      <div class="tile">
+        <span class="tile-value" id="tile-users">—</span>
+        <span class="tile-label">Users monitored</span>
+      </div>
+    </section>
+
+    <!-- Filter panel -->
+    <section class="filters" aria-label="Filters">
+      <div class="field">
+        <label for="f-user">User ID</label>
+        <input id="f-user" type="text" placeholder="e.g. U006" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="f-start">Start date</label>
+        <input id="f-start" type="date">
+      </div>
+      <div class="field">
+        <label for="f-end">End date</label>
+        <input id="f-end" type="date">
+      </div>
+      <div class="field">
+        <label for="f-severity">Severity</label>
+        <select id="f-severity">
+          <option value="">All</option>
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+        </select>
+      </div>
+      <div class="field field-actions">
+        <button id="btn-apply" type="button" class="primary">Apply filters</button>
+        <button id="btn-clear" type="button">Clear</button>
+      </div>
+    </section>
+
+    <div class="layout">
+      <!-- Anomaly table -->
+      <section class="table-wrap" aria-label="Anomalies">
+        <div class="table-meta"><span id="result-count">0</span> anomalies</div>
+        <div class="table-scroll">
+          <table class="anomaly-table">
+            <thead>
+              <tr>
+                <th>User</th><th>Date</th><th>Login</th><th>Resource</th>
+                <th>Access</th><th>Score</th><th>Severity</th><th>Reason</th>
+              </tr>
+            </thead>
+            <tbody id="anomaly-rows"></tbody>
+          </table>
+        </div>
+        <div id="empty-state" class="empty-state" hidden>
+          No anomalies match the selected filters.
+        </div>
+      </section>
+
+      <!-- Row-click detail panel -->
+      <aside class="detail-panel" id="detail-panel" aria-label="Anomaly detail">
+        <h2>Alert detail</h2>
+        <p class="detail-hint" id="detail-hint">Select a row to see the explanation.</p>
+        <dl class="detail-list" id="detail-list" hidden>
+          <dt>Anomaly ID</dt><dd id="d-id"></dd>
+          <dt>User</dt><dd id="d-user"></dd>
+          <dt>Date / time</dt><dd id="d-datetime"></dd>
+          <dt>Resource</dt><dd id="d-resource"></dd>
+          <dt>Access count</dt><dd id="d-access"></dd>
+          <dt>Severity</dt><dd id="d-severity"></dd>
+          <dt>Deviation score</dt><dd id="d-score"></dd>
+          <dt>Responsible feature</dt><dd id="d-feature"></dd>
+          <dt>Reason</dt><dd id="d-reason"></dd>
+        </dl>
+      </aside>
+    </div>
+  </main>
+
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

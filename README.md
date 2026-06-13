@@ -43,12 +43,12 @@ python run.py
 # then open http://127.0.0.1:5000/health  ->  {"status": "ok"}
 ```
 
-Backend API endpoints (JSON):
+Endpoints:
 
-- `GET /` — health-style landing
+- `GET /` — dashboard UI (summary tiles, filter panel, anomaly table, row-click detail)
 - `GET /api/summary` — total logs, total anomalies, high-risk count, users monitored
-- `GET /api/anomalies` — flagged anomalies; optional filters `user`, `start`, `end`, `severity`
-  (e.g. `/api/anomalies?severity=High&start=2025-05-01`)
+- `GET /api/anomalies` — flagged anomalies as JSON; optional filters `user`, `start`, `end`,
+  `severity` (e.g. `/api/anomalies?severity=High&start=2025-05-01`)
 
 ## Test
 

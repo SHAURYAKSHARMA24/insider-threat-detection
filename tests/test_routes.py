@@ -19,8 +19,9 @@ BASELINE_CSV = PROJECT_ROOT / "data" / "activity_baseline.csv"
 AFTER_HOURS_CSV = PROJECT_ROOT / "data" / "scenario_after_hours.csv"
 
 ANOMALY_KEYS = {
-    "anomaly_id", "user_id", "activity_date", "login_time",
-    "deviation_score", "severity_level", "anomaly_reason", "detection_timestamp",
+    "anomaly_id", "user_id", "activity_date", "login_time", "resource_type",
+    "access_count", "deviation_score", "severity_level", "anomaly_reason",
+    "detection_timestamp",
 }
 
 
@@ -40,12 +41,11 @@ def client(tmp_path_factory):
 # --------------------------------------------------------------------------- #
 # Landing + summary
 # --------------------------------------------------------------------------- #
-def test_index_returns_200(client):
+def test_index_renders_dashboard_html(client):
     resp = client.get("/")
     assert resp.status_code == 200
-    body = resp.get_json()
-    assert body["status"] == "ok"
-    assert "/api/anomalies" in body["endpoints"]
+    assert "text/html" in resp.content_type
+    assert "Insider Threat Detection" in resp.get_data(as_text=True)
 
 
 def test_summary_shape_and_values(client):

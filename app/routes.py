@@ -7,7 +7,7 @@ are ever string-interpolated into a query.
 The HTML/CSS/JS dashboard is Phase 8 -- ``/`` here returns a small health-style
 JSON landing that the dashboard template will later replace.
 """
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, render_template, request
 
 from app.db import get_db
 
@@ -16,12 +16,8 @@ bp = Blueprint("api", __name__)
 
 @bp.route("/")
 def index():
-    """Health-style landing describing the available API."""
-    return jsonify(
-        service="Insider Threat Detection API",
-        status="ok",
-        endpoints=["/health", "/api/summary", "/api/anomalies"],
-    )
+    """Render the dashboard shell (it loads data from the JSON API client-side)."""
+    return render_template("dashboard.html")
 
 
 @bp.route("/api/summary")
@@ -78,6 +74,7 @@ def api_anomalies():
 
     sql = (
         "SELECT a.anomaly_id, a.user_id, l.activity_date, l.login_time, "
+        "l.resource_type, l.access_count, "
         "a.deviation_score, a.severity_level, a.anomaly_reason, a.detection_timestamp "
         "FROM Anomalies a JOIN ActivityLogs l ON a.log_id = l.log_id"
     )
