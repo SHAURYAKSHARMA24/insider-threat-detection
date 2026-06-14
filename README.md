@@ -3,7 +3,7 @@
 An academic software artefact (COM668 Computing Project, AT3) that detects anomalous
 insider behaviour from structured activity data using **per-user statistical baselines**,
 **Z-score deviation scoring**, configurable **severity thresholds**, and an **explainable**
-web dashboard — using **synthetic data only**.
+web dashboard - using **synthetic data only**.
 
 > **Status:** AT3-ready artefact. It includes deterministic synthetic data generation,
 > SQLite ingestion, per-user baselines, anomaly scoring with severity labels and explainable
@@ -37,36 +37,36 @@ and a severity label, and present them for analyst review.
 
 ## Features
 
-- **Deterministic synthetic data** — reproducible activity history and labelled scenarios from
+- **Deterministic synthetic data** - reproducible activity history and labelled scenarios from
   a fixed seed (`data/generate_data.py`); no real or personal data.
-- **Validated CSV ingestion** — explicit per-row validation with rejection reporting, written
+- **Validated CSV ingestion** - explicit per-row validation with rejection reporting, written
   through parameterised SQL (`app/ingest.py`).
-- **Relational store** — SQLite schema with four tables: `Users`, `ActivityLogs`, `Baselines`,
+- **Relational store** - SQLite schema with four tables: `Users`, `ActivityLogs`, `Baselines`,
   `Anomalies` (`data/schema.sql`, `app/db.py`).
-- **Per-user baselines** — mean/standard deviation of login hour and access count, plus the
+- **Per-user baselines** - mean/standard deviation of login hour and access count, plus the
   resource-type distribution, for every user meeting a minimum-records threshold
   (`app/baseline.py`).
-- **Deviation scoring** — absolute Z-score for numeric features and a calibrated rarity score
+- **Deviation scoring** - absolute Z-score for numeric features and a calibrated rarity score
   for the categorical resource type (`app/scoring.py`).
-- **Configurable severity** — Low / Medium / High bands from thresholds defined in one place
+- **Configurable severity** - Low / Medium / High bands from thresholds defined in one place
   (`app/config.py`, `app/anomalies.py`).
-- **Explainable anomalies** — each stored anomaly records the responsible feature and a
+- **Explainable anomalies** - each stored anomaly records the responsible feature and a
   human-readable reason (`Anomalies.anomaly_reason`).
-- **Dashboard + JSON API** — summary tiles, filtering by user/date/severity, and a row-click
+- **Dashboard + JSON API** - summary tiles, filtering by user/date/severity, and a row-click
   detail panel, backed by read-only JSON endpoints (`app/routes.py`, `app/templates/`).
-- **CSV export (FR10)** — the filtered anomaly view can be downloaded as CSV.
-- **Labelled evaluation** — per-scenario and combined precision/recall/F1/false-positive rate
+- **CSV export (FR10)** - the filtered anomaly view can be downloaded as CSV.
+- **Labelled evaluation** - per-scenario and combined precision/recall/F1/false-positive rate
   plus threshold sensitivity, reproducible from one command (`app/evaluation.py`).
-- **Tests and CI** — a `pytest` suite and a GitHub Actions workflow.
+- **Tests and CI** - a `pytest` suite and a GitHub Actions workflow.
 
 ## Tech stack
 
 - Python 3.11+ (developed on 3.13)
-- Flask — web app + JSON API
-- SQLite — relational store
-- pandas / NumPy — statistics
-- pytest — testing
-- Git / GitHub Actions — version control + CI
+- Flask - web app + JSON API
+- SQLite - relational store
+- pandas / NumPy - statistics
+- pytest - testing
+- Git / GitHub Actions - version control + CI
 
 By design there is **no** machine learning, authentication, real-time monitoring, role
 management, or cloud deployment (consistent with the AT2 scope and exclusions). See
@@ -83,7 +83,7 @@ pip install -r requirements.txt
 
 ## Run
 
-Rebuild the demo database in one deterministic command (regenerate → ingest → baseline →
+Rebuild the demo database in one deterministic command (regenerate -> ingest -> baseline ->
 score), then start the app:
 
 ```powershell
@@ -135,7 +135,7 @@ A demo script and checklist are provided in `docs/at3-demo-script.md` and
 
 | Method & path | Description |
 |---|---|
-| `GET /` | Dashboard UI — summary tiles, filter panel, anomaly table, row-click detail |
+| `GET /` | Dashboard UI - summary tiles, filter panel, anomaly table, row-click detail |
 | `GET /health` | Liveness check; returns `{"status": "ok"}` |
 | `GET /api/summary` | Totals: activity logs, anomalies, high-risk anomalies, users monitored |
 | `GET /api/anomalies` | Flagged anomalies as JSON; optional filters `user`, `start`, `end`, `severity` (e.g. `/api/anomalies?severity=High&start=2025-05-01`) |
@@ -215,7 +215,7 @@ Demonstration captures are stored in `screenshots/`:
 ```
 app/          Flask app factory, config, ingestion, baselines, scoring, anomalies, API routes, evaluation
 data/         schema.sql, synthetic data generator, data dictionary, generated CSVs
-scripts/      rebuild.py — one-command deterministic database rebuild
+scripts/      rebuild.py - one-command deterministic database rebuild
 tests/        pytest suite
 docs/         evaluation report, demo script/checklist, code-walkthrough map, evidence index
 screenshots/  demonstration captures
