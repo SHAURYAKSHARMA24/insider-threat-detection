@@ -16,14 +16,25 @@
   function $(id) { return document.getElementById(id); }
 
   function showError(message) {
-    const banner = $("error-banner");
-    banner.textContent = message;
-    banner.hidden = false;
+    setText("error-text", message);
+    $("error-banner").hidden = false;
   }
   function clearError() {
-    const banner = $("error-banner");
-    banner.hidden = true;
-    banner.textContent = "";
+    $("error-banner").hidden = true;
+    const text = $("error-text");
+    if (text) text.textContent = "";
+  }
+
+  function setLoading(isLoading) {
+    const loader = $("table-loading");
+    if (loader) loader.hidden = !isLoading;
+    const scroll = document.querySelector(".table-scroll");
+    if (scroll) scroll.setAttribute("aria-busy", isLoading ? "true" : "false");
+    if (isLoading) $("empty-state").hidden = true;
+    ["btn-apply", "btn-clear", "btn-export"].forEach(id => {
+      const btn = $(id);
+      if (btn) btn.disabled = isLoading;
+    });
   }
 
   function setText(id, value) {
@@ -106,8 +117,11 @@
         row.user_id, row.activity_date, row.login_time,
         row.resource_type, row.access_count, fmtScore(row.deviation_score),
       ];
-      plainCells.forEach(value => {
+      // Indices 4 (access count) and 5 (score) are numeric: right-align them.
+      const numericIndexes = [4, 5];
+      plainCells.forEach((value, cellIndex) => {
         const td = document.createElement("td");
+        if (numericIndexes.indexOf(cellIndex) !== -1) td.className = "num";
         td.textContent = (value === undefined || value === null) ? "—" : value;
         tr.appendChild(td);
       });
@@ -122,7 +136,12 @@
       tr.appendChild(reasonTd);
 
       tr.addEventListener("click", () => showDetail(index));
-      tr.addEventListener("keypress", ev => { if (ev.key === "Enter") showDetail(index); });
+      tr.addEventListener("keydown", ev => {
+        if (ev.key === "Enter" || ev.key === " " || ev.key === "Spacebar") {
+          ev.preventDefault();  // stop Space scrolling the page
+          showDetail(index);
+        }
+      });
       tbody.appendChild(tr);
     });
   }
@@ -154,6 +173,7 @@
 
   async function loadAnomalies() {
     clearError();
+    setLoading(true);
     try {
       const resp = await fetch(buildAnomaliesUrl());
       if (!resp.ok) throw new Error("anomalies " + resp.status);
@@ -164,7 +184,14 @@
       currentRows = [];
       renderRows([]);
       showError("Could not load anomalies. Please try again.");
+    } finally {
+      setLoading(false);
     }
+  }
+
+  function retry() {
+    loadSummary();
+    loadAnomalies();
   }
 
   function clearFilters() {
@@ -179,6 +206,8 @@
     $("btn-apply").addEventListener("click", loadAnomalies);
     $("btn-clear").addEventListener("click", clearFilters);
     $("btn-export").addEventListener("click", exportCsv);
+    const retryBtn = $("btn-retry");
+    if (retryBtn) retryBtn.addEventListener("click", retry);
     loadSummary();
     loadAnomalies();
   });

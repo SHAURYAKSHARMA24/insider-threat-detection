@@ -15,7 +15,10 @@
   </header>
 
   <main class="container">
-    <div id="error-banner" class="error-banner" hidden role="alert"></div>
+    <div id="error-banner" class="error-banner" hidden role="alert">
+      <span class="error-text" id="error-text"></span>
+      <button type="button" class="retry-btn" id="btn-retry">Retry</button>
+    </div>
 
     <!-- Summary tiles -->
     <section class="tiles" id="summary-tiles" aria-label="Summary">
@@ -70,17 +73,21 @@
     <div class="layout">
       <!-- Anomaly table -->
       <section class="table-wrap" aria-label="Anomalies">
-        <div class="table-meta"><span id="result-count">0</span> anomalies</div>
+        <div class="table-meta" aria-live="polite"><span id="result-count">0</span> anomalies</div>
         <div class="table-scroll">
           <table class="anomaly-table">
+            <caption class="sr-only">Flagged anomalies, sorted by deviation score. Select a row for the explanation.</caption>
             <thead>
               <tr>
-                <th>User</th><th>Date</th><th>Login</th><th>Resource</th>
-                <th>Access</th><th>Score</th><th>Severity</th><th>Reason</th>
+                <th scope="col">User</th><th scope="col">Date</th><th scope="col">Login</th><th scope="col">Resource</th>
+                <th scope="col" class="num">Access</th><th scope="col" class="num">Score</th><th scope="col">Severity</th><th scope="col">Reason</th>
               </tr>
             </thead>
             <tbody id="anomaly-rows"></tbody>
           </table>
+        </div>
+        <div id="table-loading" class="loading-state" hidden>
+          <span class="spinner" aria-hidden="true"></span>Loading anomalies…
         </div>
         <div id="empty-state" class="empty-state" hidden>
           No anomalies match the selected filters.
@@ -104,6 +111,10 @@
         </dl>
       </aside>
     </div>
+
+    <footer class="app-footer">
+      Synthetic data — academic artefact (COM668 AT3). No real or personal data is processed.
+    </footer>
   </main>
 
   <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
