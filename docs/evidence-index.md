@@ -6,8 +6,9 @@
 |---|---|---|
 | Source code | `app/`, `data/`, `tests/` | Demonstrates the implemented artefact |
 | Evaluation report | `docs/evaluation-report.md` | Objective 4 labelled scenario evidence |
-| Demo script | `docs/at3-demo-script.md` | 15-minute recording structure |
-| Demo checklist | `docs/at3-demo-checklist.md` | Practical run-through checklist |
+| Architecture reference | `docs/ARCHITECTURE.md` | Module layering, data flow, request lifecycle |
+| Detection engine reference | `docs/DETECTION_ENGINE.md` | Scoring formulae, calibration, severity semantics |
+| Testing summary | `docs/TESTING_SUMMARY.md` | Test coverage areas and evaluation methodology |
 | Code walkthrough map | `docs/code-walkthrough-map.md` | Shows which files support which requirements |
 | Test suite | `tests/` | Regression and behaviour verification |
 
